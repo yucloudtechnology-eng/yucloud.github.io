@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Symptom-to-Solution Triage Tables for Cross-Border Sites | CFEnterpriseHub.com</title>
+<meta name="description" content="Three structured triage tables for cross-border site problems: slow overseas access, checkout timeouts during a sale, and prices being scraped. Classify the symptom before choosing a solution category.">
+<meta name="author" content="Valli Wang">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<style>
+  :root { color-scheme: light; }
+  body { font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1b2430; background: #fff; margin: 0; }
+  main { max-width: 980px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1 { font-size: 1.9rem; line-height: 1.3; margin: 0 0 12px; }
+  h2 { font-size: 1.35rem; margin: 44px 0 10px; border-top: 1px solid #e3e8ee; padding-top: 24px; }
+  h3 { font-size: 1.05rem; margin: 22px 0 8px; }
+  p { margin: 0 0 14px; }
+  .lede { font-size: 1.05rem; color: #344054; }
+  .meta, footer { color: #5a6779; font-size: .9rem; }
+  .note { background: #f5f8fc; border-left: 3px solid #94a9c4; padding: 12px 16px; margin: 18px 0; }
+  .tablewrap { overflow-x: auto; margin: 14px 0 24px; }
+  table { border-collapse: collapse; width: 100%; min-width: 680px; font-size: .93rem; }
+  caption { text-align: left; font-weight: 600; padding: 6px 0 10px; }
+  th, td { border: 1px solid #dde3ec; padding: 9px 11px; text-align: left; vertical-align: top; }
+  th { background: #f2f6fb; font-weight: 600; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 5px 0; }
+  a { color: #1558a6; }
+  code { background: #f2f5f9; padding: 1px 5px; border-radius: 3px; font-size: .9em; }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "headline": "Symptom-to-Solution Triage Tables for Cross-Border Sites",
+      "description": "Three structured triage tables mapping cross-border site symptoms to observable evidence, solution categories, and ownership, before any vendor shortlist is built.",
+      "inLanguage": "en",
+      "datePublished": "2026-11-13",
+      "dateModified": "2026-11-13",
+      "isAccessibleForFree": true,
+      "author": {
+        "@type": "Person",
+        "name": "Valli Wang",
+        "url": "https://cfenterprisehub.com/authors/valli-wang/"
+      },
+      "isBasedOn": [
+        "https://cfenterprisehub.com/blog/site-slow-overseas-triage/",
+        "https://cfenterprisehub.com/blog/checkout-timeout-traffic-or-attack/",
+        "https://cfenterprisehub.com/blog/competitor-scraping-prices-triage/"
+      ],
+      "about": [
+        { "@type": "Thing", "name": "Cross-border web performance triage" },
+        { "@type": "Thing", "name": "Traffic classification" },
+        { "@type": "Thing", "name": "Bot and scraping classification" }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Our site is fast at home but slow for overseas customers. What should we check first?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Split a single request into five stages: DNS resolution, connection, TLS handshake, time to first byte, and content download. Find the stage that grew. The first three point at resolution and routing; a slow first byte points at the origin or a cache miss that travels back to it; slow download alone points at page weight and third-party scripts. Changing a server, adding caching, and changing the network path each fix a different stage, so measure before buying anything."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Checkout timed out when a sale started. Is it traffic or an attack?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Request volume alone cannot answer that. A sharp jump at the start of a sale is normal business, and a script can push a single endpoint to the same level. The difference is structure: path distribution, static-asset pull ratio, source and fingerprint spread, and the shape of the curve over time. Rule out a third cause first: your own release, a retry storm, a saturated connection pool, or a slow third-party payment dependency. Only after classification does it make sense to decide which layer needs control."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Competitors are scraping our prices. Is that an attack?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Not automatically. There are three cases: permitted or negotiable collection such as search engines, comparison services and agreed partners; grey-area bulk collection that breaks your terms but causes no visible harm; and scraping with demonstrable business harm such as real-time price matching, stock exposure, coupon abuse or account risk. Only the third enters a buying conversation. WAF rules, rate limits, human verification, behavioural bot control and application-side quotas each judge a different thing: some judge the request, others judge the caller."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<main>
+
+<p class="meta">Independent reference page · <time datetime="2026-11-13">13 November 2026</time> · by Valli Wang</p>
+
+<h1>Symptom-to-Solution Triage Tables for Cross-Border Sites</h1>
+
+<p class="lede">Three symptoms account for most of the "something is wrong with our overseas site" conversations: it is slow abroad, it froze during a sale, or someone is scraping our prices. In all three, the expensive mistake is the same — picking a product category before classifying the symptom. These tables give the classification step a fixed shape.</p>
+
+<div class="note">
+<strong>Scope.</strong> These tables name <em>categories</em> of capability, not vendors, and contain no performance numbers, prices or thresholds. They are meant to be quoted, copied and checked against your own baseline. Once classification is done, the next step is a separate candidate shortlist built with the same evaluation dimensions for every vendor. Nothing here is a ranking or an endorsement.
+</div>
+
+<h2>Table 1 · "Fast at home, slow for overseas customers"</h2>
+
+<p>One request has five stages. The stage that grew tells you which class of cause to investigate. Moving a server, adding caching and changing the network path each fix a different stage.</p>
+
+<div class="tablewrap">
+<table>
+<caption>Five-stage triage for a slow cross-border request</caption>
+<thead>
+<tr><th scope="col">Stage</th><th scope="col">What to measure</th><th scope="col">If this stage grew, it points at</th><th scope="col">Capability category to consider</th><th scope="col">Usually owned by</th></tr>
+</thead>
+<tbody>
+<tr><td>DNS resolution</td><td>Time from navigation start to resolved address</td><td>Resolver geography, record design, authoritative lookup latency</td><td>Authoritative DNS / geo-aware resolution</td><td>Platform or infra team</td></tr>
+<tr><td>Connection</td><td>Time to establish the connection</td><td>Distance to the serving point, routing, connection reuse</td><td>Edge network / anycast reach</td><td>Network or edge provider</td></tr>
+<tr><td>TLS handshake</td><td>Time to complete the handshake</td><td>Round trips, session resumption, handshake termination point</td><td>Edge TLS termination</td><td>Network or edge provider</td></tr>
+<tr><td>Time to first byte</td><td>Wait after the request is sent</td><td>Origin work, or a cache miss that travels back to origin</td><td>Caching / origin offload / dynamic acceleration</td><td>Application + edge provider</td></tr>
+<tr><td>Content download</td><td>Time to receive the remaining bytes</td><td>Page weight, image and script payload, third-party assets</td><td>Front-end optimisation / image delivery</td><td>Front-end team</td></tr>
+</tbody>
+</table>
+</div>
+
+<p><strong>Read the table in order.</strong> A cache that never hits does not fix a slow handshake; a faster origin does not fix a heavy page. The line between what your team can fix in-house (payload, connection reuse, cache keys) and what needs outside capability (edge reach, DNS footprint) is drawn after the measurement, not before.</p>
+
+<h2>Table 2 · "Checkout timed out when the sale started"</h2>
+
+<p>Volume cannot separate a business peak from an automated one, because a script can push a single endpoint to the same level as a real campaign. Structure can. There is also a third class that looks identical and is most often missed.</p>
+
+<div class="tablewrap">
+<table>
+<caption>Signals that separate a peak, automation, and your own change</caption>
+<thead>
+<tr><th scope="col">Signal</th><th scope="col">Normal campaign peak</th><th scope="col">Automated or hostile pattern</th><th scope="col">Your own change</th></tr>
+</thead>
+<tbody>
+<tr><td>Path distribution</td><td>Spread across browsing, cart and checkout in a familiar ratio</td><td>Concentrated on one endpoint or one unusual path</td><td>A newly released route appears in the traces</td></tr>
+<tr><td>Static-asset pull ratio</td><td>Pages, images and scripts are fetched together</td><td>Requests arrive without the surrounding assets</td><td>Asset ratio changes after a front-end deploy</td></tr>
+<tr><td>Source and fingerprint spread</td><td>Consistent with your real customer regions and devices</td><td>Narrow, repeating or implausibly uniform fingerprints</td><td>Internal health checks or a new integration appear</td></tr>
+<tr><td>Shape of the curve over time</td><td>Rises with the campaign schedule and decays with it</td><td>Step change, flat plateau, or repeated bursts</td><td>Starts exactly at a deploy, retry or config change</td></tr>
+<tr><td>Dependency behaviour</td><td>Payment and risk services keep their usual response pattern</td><td>Not the primary signal</td><td>A third-party payment or risk dependency got slow</td></tr>
+</tbody>
+</table>
+</div>
+
+<p><strong>Order of elimination:</strong> rule out your own release, retry storm, saturated connection pool and slow payment dependency first. Then classify the remaining pattern. Only then does it make sense to ask whether the needed control belongs at the edge (absorbing and filtering), in the application (quotas and idempotency), or in the request path (rate limits and verification). Those layers judge different things.</p>
+
+<h2>Table 3 · "Someone is scraping our prices and stock"</h2>
+
+<p>Being scraped is not the same as being attacked, and the difference decides whether any purchase is warranted at all.</p>
+
+<div class="tablewrap">
+<table>
+<caption>Three cases of automated collection</caption>
+<thead>
+<tr><th scope="col">Case</th><th scope="col">Defining feature</th><th scope="col">Evidence worth keeping</th><th scope="col">Does a buying conversation start?</th><th scope="col">Layer that judges it</th></tr>
+</thead>
+<tbody>
+<tr><td>Permitted or negotiable</td><td>Search engines, comparison services, agreed partners</td><td>Contract, terms, declared user agent, allowlist</td><td>No — this is a policy and allowlist task</td><td>Policy / robots / allowlist</td></tr>
+<tr><td>Grey-area bulk collection</td><td>Breaks your terms but no demonstrable harm</td><td>Request logs, frequency pattern, no loss attributable</td><td>Usually no — monitor and document first</td><td>Logging / application-side quotas</td></tr>
+<tr><td>Scraping with demonstrable harm</td><td>Real-time price matching, stock exposure, coupon or checkout abuse, account risk</td><td>Timestamped business impact tied to specific request patterns</td><td>Yes, once the evidence exists</td><td>Rules, rate limits, human verification, behavioural control, application quotas — each judges a different thing</td></tr>
+</tbody>
+</table>
+</div>
+
+<p><strong>Why the evidence column matters:</strong> a rule that blocks a request and a control that judges the caller are not interchangeable. Classify first, then choose the layer. An address is not a stable identity, and a request header is optional input — neither should be treated as proof on its own.</p>
+
+<h2>What this page deliberately does not do</h2>
+<ul>
+<li>It does not rank vendors, name a "best" product, or claim any outcome.</li>
+<li>It does not publish third-party thresholds, benchmarks or prices. Compare against <em>your own</em> baseline instead.</li>
+<li>It does not turn a symptom page into a product recommendation. Vendor names belong on a separate shortlist page, after classification.</li>
+<li>It does not substitute for your own traces. The tables tell you what to look at, not what the answer is.</li>
+</ul>
+
+<h2>Decision checklist</h2>
+<ol>
+<li>Write the symptom in the customer's own words, before naming any technology.</li>
+<li>Identify which stage, signal or case applies; if two apply, split them into two problems.</li>
+<li>Rule out your own release, retries, connection pool and dependencies first.</li>
+<li>Record the evidence that would survive a vendor conversation.</li>
+<li>Separate what your team fixes in-house from what needs outside capability.</li>
+<li>Only then build a shortlist, and keep the evaluation dimensions the same for every candidate.</li>
+<li>Write down the condition under which you would <em>not</em> buy anything.</li>
+</ol>
+
+<h2>Sources and related reading</h2>
+<p>Full triage write-ups with Chinese and English versions, maintained at <a href="https://cfenterprisehub.com/">CFEnterpriseHub.com</a>:</p>
+<ul>
+<li><a href="https://cfenterprisehub.com/blog/site-slow-overseas-triage/">Site slow overseas: a triage sequence before you buy anything</a> · <a href="https://cfenterprisehub.com/zh/blog/site-slow-overseas-triage/">中文版</a></li>
+<li><a href="https://cfenterprisehub.com/blog/checkout-timeout-traffic-or-attack/">Checkout timeouts: traffic, attack, or your own release?</a> · <a href="https://cfenterprisehub.com/zh/blog/checkout-timeout-traffic-or-attack/">中文版</a></li>
+<li><a href="https://cfenterprisehub.com/blog/competitor-scraping-prices-triage/">Prices being scraped: classify before choosing a control</a> · <a href="https://cfenterprisehub.com/zh/blog/competitor-scraping-prices-triage/">中文版</a></li>
+</ul>
+
+<footer>
+<p>Author: Valli Wang (also publishing as 王璐). Maintained as an independent, freely accessible reference. Last reviewed <time datetime="2026-11-13">13 November 2026</time>.</p>
+<p>Entity strings used consistently across this site and all third-party distributions: <code>CFEnterpriseHub.com</code>, <code>Valli Wang</code>, <code>Phil Lu</code>.</p>
+</footer>
+
+</main>
+</body>
+</html>
